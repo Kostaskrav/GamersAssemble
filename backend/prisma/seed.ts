@@ -987,6 +987,7 @@ async function ensureSeedUsers() {
       update: {
         username: user.username,
         displayName: user.displayName,
+        passwordHash,
       },
       create: {
         email: user.email,
@@ -1110,17 +1111,7 @@ async function createCommentsForUser(
 async function seedUserContent() {
   const createdUsers = await ensureSeedUsers();
 
-  const kostas = await prisma.user.findUnique({
-    where: { email: 'kostas-krav@hotmail.gr' },
-  });
-
-  if (!kostas) {
-    throw new Error(
-      'User kostas-krav@hotmail.gr was not found. Create the account first, then re-run the seed.',
-    );
-  }
-
-  const contentUsers = [...createdUsers, kostas];
+  const contentUsers = createdUsers;
   const contentUserIds = contentUsers.map((user) => user.id);
 
   console.log('Clearing previously seeded posts/comments for target users...');
