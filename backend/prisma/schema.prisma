@@ -1,0 +1,85 @@
+// This is your Prisma schema file.
+// Learn more: https://pris.ly/d/prisma-schema
+//
+// Application models (User, Game, Post, Comment, etc.) will be added later.
+// Keep this file free of product models for now.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PostType {
+  BUG
+  FIX
+  IDEA
+}
+
+model Game {
+  id            Int        @id @default(autoincrement())
+  name          String
+  slug          String     @unique
+  description   String?
+  releaseDate   DateTime?
+  coverImageUrl String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  platforms     Platform[]
+  posts         Post[]
+}
+
+model Platform {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+  slug String @unique
+
+  posts Post[]
+  games Game[]
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  username     String   @unique
+  passwordHash String
+  displayName  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  posts Post[]
+  comments Comment[]
+}
+
+model Post {
+  id        Int        @id @default(autoincrement())
+  title     String
+  content   String
+  type      PostType
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  authorId  Int
+  gameId    Int
+  author    User       @relation(fields: [authorId], references: [id])
+  game      Game       @relation(fields: [gameId], references: [id])
+  platforms Platform[]
+  comments Comment[]
+}
+
+model Comment {
+	id        Int      @id @default(autoincrement())
+	content   String
+	createdAt DateTime @default(now())
+	updatedAt DateTime @updatedAt
+
+	authorId Int
+	postId   Int
+
+	author User @relation(fields: [authorId], references: [id])
+	post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+	@@index([postId, createdAt])
+}
